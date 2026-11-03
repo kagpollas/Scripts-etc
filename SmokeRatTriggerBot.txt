@@ -1,0 +1,277 @@
+-- Este script es para mis amigos UwU
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+local Workspace = game:GetService("Workspace")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local TweenService = game:GetService("TweenService")
+
+local localPlayer = Players.LocalPlayer
+local mouse = localPlayer:GetMouse()
+
+local enabled = true
+local autoEquip = true -- Opción de Auto Equip ON / OFF
+local toggleKey = Enum.KeyCode.RightShift
+local hideKey = Enum.KeyCode.LeftBracket
+local waitingForKey = nil
+
+local fireCooldown = 0.35
+local lastShot = 0
+
+--[[ La ui ]]--
+local screenGui, toggleBtn, keybindBtn, hideBtn, hideKeybindBtn, autoEquipBtn, destroyBtn
+
+
+local function updateToggleVisuals()
+	if toggleBtn then
+		toggleBtn.Text = "SmokeGuiRatXD: " .. (enabled and "ON" or "OFF")
+		local targetColor = enabled and Color3.fromRGB(35, 180, 100) or Color3.fromRGB(60, 60, 70)
+		TweenService:Create(toggleBtn, TweenInfo.new(0.2), {BackgroundColor3 = targetColor}):Play()
+	end
+end
+
+local function updateAutoEquipVisuals()
+	if autoEquipBtn then
+		autoEquipBtn.Text = "Auto Equip: " .. (autoEquip and "ON" or "OFF")
+		local targetColor = autoEquip and Color3.fromRGB(35, 140, 180) or Color3.fromRGB(60, 60, 70)
+		TweenService:Create(autoEquipBtn, TweenInfo.new(0.2), {BackgroundColor3 = targetColor}):Play()
+	end
+end
+
+
+local isHidden = false
+local function toggleHideGui()
+	isHidden = not isHidden
+	if toggleBtn then toggleBtn.Visible = not isHidden end
+	if keybindBtn then keybindBtn.Visible = not isHidden end
+	if hideBtn then hideBtn.Visible = not isHidden end
+	if hideKeybindBtn then hideKeybindBtn.Visible = not isHidden end
+	if autoEquipBtn then autoEquipBtn.Visible = not isHidden end
+	if destroyBtn then destroyBtn.Visible = not isHidden end
+end
+
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if waitingForKey then
+		if input.UserInputType == Enum.UserInputType.Keyboard then
+			if waitingForKey == "toggle" then
+				toggleKey = input.KeyCode
+				if keybindBtn then
+					keybindBtn.Text = "Key: " .. toggleKey.Name
+					keybindBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+				end
+			elseif waitingForKey == "hide" then
+				hideKey = input.KeyCode
+				if hideKeybindBtn then
+					hideKeybindBtn.Text = "Key: " .. hideKey.Name
+					hideKeybindBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+				end
+			end
+			waitingForKey = nil
+		end
+		return
+	end
+
+	if input.UserInputType == Enum.UserInputType.Keyboard then
+		if input.KeyCode == toggleKey then
+			enabled = not enabled
+			updateToggleVisuals()
+		elseif input.KeyCode == hideKey then
+			toggleHideGui()
+		end
+	end
+end)
+
+
+screenGui = Instance.new("ScreenGui")
+screenGui.Name = "SmokeGuiRatXD"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = CoreGui
+
+
+toggleBtn = Instance.new("TextButton")
+toggleBtn.Name = "ToggleBtn"
+toggleBtn.Size = UDim2.new(0, 130, 0, 40)
+toggleBtn.Position = UDim2.new(0.5, -100, 0, 10)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(35, 180, 100)
+toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleBtn.Font = Enum.Font.SourceSansBold
+toggleBtn.TextSize = 15
+toggleBtn.Text = "SmokeGuiRatXD: ON"
+toggleBtn.AutoButtonColor = false
+toggleBtn.Parent = screenGui
+
+local toggleCorner = Instance.new("UICorner")
+toggleCorner.CornerRadius = UDim.new(0, 8)
+toggleCorner.Parent = toggleBtn
+
+local uiGradient = Instance.new("UIGradient")
+uiGradient.Color = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 180, 180))
+})
+uiGradient.Rotation = 90
+uiGradient.Parent = toggleBtn
+
+toggleBtn.MouseButton1Click:Connect(function()
+	enabled = not enabled
+	updateToggleVisuals()
+end)
+
+
+keybindBtn = Instance.new("TextButton")
+keybindBtn.Name = "KeybindBtn"
+keybindBtn.Size = UDim2.new(0, 70, 0, 40)
+keybindBtn.Position = UDim2.new(0.5, 33, 0, 10)
+keybindBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+keybindBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+keybindBtn.Font = Enum.Font.SourceSansBold
+keybindBtn.TextSize = 13
+keybindBtn.Text = "Key: " .. toggleKey.Name
+keybindBtn.AutoButtonColor = false
+keybindBtn.Parent = screenGui
+
+local keybindCorner = Instance.new("UICorner")
+keybindCorner.CornerRadius = UDim.new(0, 8)
+keybindCorner.Parent = keybindBtn
+
+keybindBtn.MouseButton1Click:Connect(function()
+	waitingForKey = "toggle"
+	keybindBtn.Text = "..."
+	keybindBtn.BackgroundColor3 = Color3.fromRGB(180, 140, 30)
+end)
+
+
+hideBtn = Instance.new("TextButton")
+hideBtn.Name = "HideBtn"
+hideBtn.Size = UDim2.new(0, 130, 0, 40)
+hideBtn.Position = UDim2.new(0.5, -100, 0, 55)
+hideBtn.BackgroundColor3 = Color3.fromRGB(70, 100, 180)
+hideBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+hideBtn.Font = Enum.Font.SourceSansBold
+hideBtn.TextSize = 15
+hideBtn.Text = "Hide GUI"
+hideBtn.AutoButtonColor = false
+hideBtn.Parent = screenGui
+
+local hideCorner = Instance.new("UICorner")
+hideCorner.CornerRadius = UDim.new(0, 8)
+hideCorner.Parent = hideBtn
+
+hideBtn.MouseButton1Click:Connect(function()
+	toggleHideGui()
+end)
+
+
+hideKeybindBtn = Instance.new("TextButton")
+hideKeybindBtn.Name = "HideKeybindBtn"
+hideKeybindBtn.Size = UDim2.new(0, 70, 0, 40)
+hideKeybindBtn.Position = UDim2.new(0.5, 33, 0, 55)
+hideKeybindBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+hideKeybindBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+hideKeybindBtn.Font = Enum.Font.SourceSansBold
+hideKeybindBtn.TextSize = 13
+hideKeybindBtn.Text = "Key: " .. hideKey.Name
+hideKeybindBtn.AutoButtonColor = false
+hideKeybindBtn.Parent = screenGui
+
+local hideKeybindCorner = Instance.new("UICorner")
+hideKeybindCorner.CornerRadius = UDim.new(0, 8)
+hideKeybindCorner.Parent = hideKeybindBtn
+
+hideKeybindBtn.MouseButton1Click:Connect(function()
+	waitingForKey = "hide"
+	hideKeybindBtn.Text = "..."
+	hideKeybindBtn.BackgroundColor3 = Color3.fromRGB(180, 140, 30)
+end)
+
+
+autoEquipBtn = Instance.new("TextButton")
+autoEquipBtn.Name = "AutoEquipBtn"
+autoEquipBtn.Size = UDim2.new(0, 203, 0, 35)
+autoEquipBtn.Position = UDim2.new(0.5, -100, 0, 100)
+autoEquipBtn.BackgroundColor3 = Color3.fromRGB(35, 140, 180)
+autoEquipBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+autoEquipBtn.Font = Enum.Font.SourceSansBold
+autoEquipBtn.TextSize = 15
+autoEquipBtn.Text = "Auto Equip: ON"
+autoEquipBtn.AutoButtonColor = false
+autoEquipBtn.Parent = screenGui
+
+local autoEquipCorner = Instance.new("UICorner")
+autoEquipCorner.CornerRadius = UDim.new(0, 8)
+autoEquipCorner.Parent = autoEquipBtn
+
+autoEquipBtn.MouseButton1Click:Connect(function()
+	autoEquip = not autoEquip
+	updateAutoEquipVisuals()
+end)
+
+
+destroyBtn = Instance.new("TextButton")
+destroyBtn.Name = "DestroyBtn"
+destroyBtn.Size = UDim2.new(0, 203, 0, 35)
+destroyBtn.Position = UDim2.new(0.5, -100, 0, 140)
+destroyBtn.BackgroundColor3 = Color3.fromRGB(180, 40, 45)
+destroyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+destroyBtn.Font = Enum.Font.SourceSansBold
+destroyBtn.TextSize = 15
+destroyBtn.Text = "Destroy GUI"
+destroyBtn.AutoButtonColor = false
+destroyBtn.Parent = screenGui
+
+local destroyCorner = Instance.new("UICorner")
+destroyCorner.CornerRadius = UDim.new(0, 8)
+destroyCorner.Parent = destroyBtn
+
+destroyBtn.MouseButton1Click:Connect(function()
+	screenGui:Destroy()
+end)
+
+
+RunService.RenderStepped:Connect(function()
+	if enabled == false then return end
+	if tick() - lastShot < fireCooldown then return end
+
+	local target = mouse.Target
+	if not target then return end
+	if not target:IsDescendantOf(Workspace) then return end
+
+	local character = target:FindFirstAncestorOfClass("Model")
+	if not character then return end
+
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if not humanoid or humanoid.Health <= 0 then return end
+	if character == localPlayer.Character then return end
+
+	local char = localPlayer.Character
+	if not char then return end
+
+	local tool = char:FindFirstChild("Kawaii Revolver")
+	
+	-- Si el auto equip está activado y no tenemos el arma en la mano, la buscamos y equipamos
+	if not tool and autoEquip then
+		local backpack = localPlayer:FindFirstChild("Backpack")
+		if backpack then
+			tool = backpack:FindFirstChild("Kawaii Revolver")
+			if tool then
+				tool.Parent = char
+				task.wait(0.05)
+			end
+		end
+	end
+
+
+	if not tool then return end
+
+	lastShot = tick()
+
+	pcall(function()
+		local mousePos = UserInputService:GetMouseLocation()
+		VirtualInputManager:SendMouseButtonEvent(mousePos.X, mousePos.Y, 0, true, game, 1)
+		task.wait(0.02)
+		VirtualInputManager:SendMouseButtonEvent(mousePos.X, mousePos.Y, 0, false, game, 1)
+	end)
+end)
